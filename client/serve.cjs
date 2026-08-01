@@ -49,13 +49,21 @@ const server = http.createServer((req, res) => {
   const extname = String(path.extname(filePath)).toLowerCase();
   const contentType = mimeTypes[extname] || 'text/html';
 
-  fs.readFile(filePath, (error, content) => {
+  fs.readFile(filePath, 'utf-8', (error, content) => {
     if (error) {
       res.writeHead(500);
       res.end(`Server Error: ${error.code}`);
     } else {
+      let finalContent = content;
+      // Transform index.html for local bundled browser execution
+      if (extname === '.html') {
+        finalContent = content.replace(
+          '<script type="module" src="/src/main.jsx"></script>',
+          '<link rel="stylesheet" href="/dist/output.css" /><script src="/dist/bundle.js"></script>'
+        );
+      }
       res.writeHead(200, { 'Content-Type': contentType });
-      res.end(content, 'utf-8');
+      res.end(finalContent, 'utf-8');
     }
   });
 });
