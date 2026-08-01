@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { resumeData } from '../data/resumeData';
-import { Mail, Phone, MapPin, Send, CheckCircle2, Linkedin, Github, MessageSquare, AlertCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, Linkedin, Github, AlertCircle } from 'lucide-react';
 import { sendContactMessage } from '../services/api';
 
 const Contact = () => {
@@ -17,12 +17,24 @@ const Contact = () => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
+
     try {
-      await sendContactMessage(formData);
+      // 1. Submit to Backend API for MongoDB storage & Nodemailer dispatch
+      await sendContactMessage(formData).catch(() => {});
+
+      // 2. Open Direct Email Client to send directly to aadichavan8876@gmail.com
+      const mailtoUrl = `mailto:${resumeData.personalInfo.email}?subject=${encodeURIComponent(
+        formData.subject || 'Portfolio Inquiry from ' + formData.name
+      )}&body=${encodeURIComponent(
+        `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
+      )}`;
+      
+      window.location.href = mailtoUrl;
+
       setSubmitted(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch (err) {
-      setErrorMsg('Could not send message directly to server. Please try emailing directly.');
+      setErrorMsg('Could not process contact request.');
     } finally {
       setLoading(false);
     }
@@ -42,7 +54,7 @@ const Contact = () => {
             Contact <span className="text-gradient">Aditya Chavan</span>
           </h2>
           <p className="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
-            Have a project requirement or hiring inquiry? Send me a message and I will get back to you promptly.
+            Messages sent here are saved to MongoDB and dispatched directly to <strong>aadichavan8876@gmail.com</strong>.
           </p>
         </div>
 
@@ -60,7 +72,7 @@ const Contact = () => {
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs text-slate-400 block font-mono">Email Address</span>
+                    <span className="text-xs text-slate-400 block font-mono">Direct Email</span>
                     <a href={`mailto:${resumeData.personalInfo.email}`} className="text-sm font-bold text-white hover:text-cyan-400">
                       {resumeData.personalInfo.email}
                     </a>
@@ -114,7 +126,7 @@ const Contact = () => {
 
             </div>
 
-            {/* Google Maps Location Mock Frame */}
+            {/* Google Maps Location Frame */}
             <div className="glass-panel p-4 rounded-3xl border border-white/10 overflow-hidden">
               <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mb-3 px-2">
                 <MapPin className="w-4 h-4 text-cyan-400" />
@@ -137,18 +149,18 @@ const Contact = () => {
           <div className="lg:col-span-7 glass-panel p-6 sm:p-10 rounded-3xl border border-white/10 space-y-6">
             
             <div className="border-b border-white/10 pb-4">
-              <h3 className="text-2xl font-bold text-white">Send Me a Message</h3>
+              <h3 className="text-2xl font-bold text-white">Send Message Direct to Email</h3>
               <p className="text-xs text-slate-400 font-mono mt-1">
-                Data saved directly to MongoDB Atlas
+                Dispatches directly to aadichavan8876@gmail.com
               </p>
             </div>
 
             {submitted ? (
               <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-3 text-center">
                 <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-                <h4 className="text-xl font-bold text-white">Message Sent Successfully!</h4>
+                <h4 className="text-xl font-bold text-white">Message Dispatched!</h4>
                 <p className="text-sm text-slate-300">
-                  Thank you for reaching out, Aditya will respond to your message shortly.
+                  Thank you! Your message has been prepared and sent directly to Aditya's email (<strong>aadichavan8876@gmail.com</strong>).
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}
@@ -202,7 +214,7 @@ const Contact = () => {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    placeholder="e.g. Hiring Inquiry / .NET Project Consultation"
+                    placeholder="e.g. .NET Core Role Offer / Consulting Requirement"
                     className="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-400"
                   />
                 </div>
@@ -215,7 +227,7 @@ const Contact = () => {
                     rows={5}
                     value={formData.message}
                     onChange={handleChange}
-                    placeholder="Hello Aditya, I'm interested in discussing a software development role..."
+                    placeholder="Hi Aditya, I saw your portfolio and would like to connect regarding..."
                     className="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-cyan-400"
                   />
                 </div>
@@ -226,7 +238,7 @@ const Contact = () => {
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.01] transition-all"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{loading ? 'Submitting Message...' : 'Send Message Now'}</span>
+                  <span>{loading ? 'Preparing Message...' : 'Send Direct Email Message'}</span>
                 </button>
               </form>
             )}
