@@ -1,0 +1,10 @@
+{
+  "name": "ai-developer-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "main": "server/server.js",
+  "scripts": {
+    "build": "cd client && npm install && node build.cjs && npx tailwindcss -i src/index.css -o dist/output.css",
+    "start": "cd server && node server.js"
+  }
+}
